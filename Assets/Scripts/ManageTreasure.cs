@@ -9,7 +9,7 @@ public delegate void PlayCut();
 public class ManageTreasure
 {
     public const int Size = 9;
-    public const int Balls = 7;
+    public const int Balls =7;
     const int AddBall = 3;
     Random random = new Random();
 
@@ -58,7 +58,7 @@ public class ManageTreasure
         } 
         while (map[x,y]>0);
 
-        int ball = 1 + random.Next(AddBall - 1);
+        int ball = 1 + random.Next(Balls - 1);
         SetMap(x, y, ball);
     }
 
@@ -81,14 +81,21 @@ public class ManageTreasure
 
     public void Click(int x, int y)
     {
-        if (map[x,y]>0)
+        if (IsGameOver())
         {
-            TakeBall(x,y);
+            Start();
         }
         else
         {
-            MoveBall(x,y);
-        }
+            if (map[x, y] > 0)
+            {
+                TakeBall(x, y);
+            }
+            else
+            {
+                MoveBall(x, y);
+            }
+        }     
     }
 
     private void MoveBall(int x, int y)
@@ -184,9 +191,38 @@ public class ManageTreasure
                y >= 0 && y < Size;
     }
 
-    private bool CanMove(int x, int y)
+    private bool[,] used;
+
+    private bool CanMove(int toX, int toY)
     {
-        return true;
+        used = new bool[Size, Size];
+        Walk(fromX, fromY, true);
+        return used[toX, toY];
+
+    }
+
+    private void Walk(int x, int y, bool start = false)//cheking a clear way to point
+    {
+        if (!start)
+        {
+            if (!OnMap(x, y))//cheking limit of map
+            {
+                return;
+            }
+            if (map[x, y] > 0)//cheking obstacles(balls)
+            {
+                return;
+            }
+            if (used[x,y])//cheking if we are there
+            {
+                return;
+            }
+        }
+        used[x, y] = true;
+        Walk(x + 1, y);
+        Walk(x - 1, y);
+        Walk(x, y + 1);
+        Walk(x, y - 1);
     }
 
     private void TakeBall(int x, int y)
@@ -194,5 +230,20 @@ public class ManageTreasure
         fromX = x;
         fromY = y;
         isBoolSelected = true;
+    }
+
+    private bool IsGameOver()
+    {
+        for (int x = 0; x < Size; x++)
+        {
+            for (int y = 0; y < Size; y++)
+            {
+                if (map[x,y]==0)
+                {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 }
